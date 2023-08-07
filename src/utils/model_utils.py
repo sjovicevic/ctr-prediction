@@ -1,5 +1,6 @@
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score
+import matplotlib.pyplot as plt
 
 
 def model_evaluation(model, X, y):
@@ -32,3 +33,20 @@ def store_results(X_train, y_train, X_test, y_test, model, folds):
 
     return scores
 
+
+def draw_roc(model, X_test, actual):
+    probs = model.predict(X_test)
+    fpr, tpr, thresholds = metrics.roc_curve(actual, probs, drop_intermediate=False)
+    auc_score = metrics.roc_auc_score(actual, probs)
+    plt.figure(figsize=(6, 6))
+    plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % auc_score)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate or [1 - True Negative Rate]')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic example')
+    plt.legend(loc="lower right")
+    plt.show()
+
+    return fpr, tpr, thresholds
