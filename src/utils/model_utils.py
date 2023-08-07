@@ -1,25 +1,29 @@
+import pandas as pd
 from sklearn import metrics
 from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 
 
 def model_evaluation(model, X, y):
-    y_pred_train = model.predict(X)
-    confusion_matrix = metrics.confusion_matrix(y_true=y, y_pred=y_pred_train)
-    accuracy = metrics.accuracy_score(y_true=y, y_pred=y_pred_train)
-    precision, recall, fscore, _ = metrics.precision_recall_fscore_support(
-        y_true=y,
-        y_pred=y_pred_train
-    )
+    y_pred = model.predict(X)
+    accuracy = metrics.accuracy_score(y, y_pred)
+    cnf_matrix = metrics.confusion_matrix(y, y_pred)
 
-    return {'confusion_matrix': confusion_matrix,
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall,
-            'fscore': fscore}
+    return accuracy, cnf_matrix
 
 
-def store_results(X_train, y_train, X_test, y_test, model, folds):
+def precision_recall(confusion_matrix):
+    TP = confusion_matrix[1, 1]
+    FP = confusion_matrix[0, 1]
+    FN = confusion_matrix[1, 0]
+
+    precision = TP / (TP + FN)
+    recall = TP / (TP + FP)
+
+    return precision, recall
+
+
+def store_results(name, X_train, y_train, X_test, y_test, model, folds):
     cross_validation = cross_val_score(
         estimator=model,
         X=X_train,
@@ -27,11 +31,32 @@ def store_results(X_train, y_train, X_test, y_test, model, folds):
         cv=folds,
         n_jobs=-1)
 
-    scores = {'train': [model_evaluation(model, X_train, y_train)],
-              'test': [model_evaluation(model, X_test, y_test)],
-              'cross-validation': cross_validation}
+    accuracy_train, cm_train = model_evaluation(model, X_train, y_train)
+    accuracy_test, cm_test = model_evaluation(model, X_test, y_test)
 
-    return scores
+    precision_train, recall_train = precision_recall(cm_train)
+    precision_test, recall_test = precision_recall(cm_test)
+
+    output = {
+        'model-name': [name],
+        'accuracy-train': [accuracy_train],
+        'precision-train': [precision_train],
+        'recall-train': [recall_train],
+        'accuracy_test': [accuracy_test],
+        'precision-test': [precision_test],
+        'recall-test': [recall_test],
+        'cross-val-mean': [cross_validation.mean()],
+        'cross-val-1': [cross_validation[0]],
+        'cross-val-2': [cross_validation[1]],
+        'cross-val-3': [cross_validation[2]],
+        'cross-val-4': [cross_validation[3]],
+        'cross-val-5': [cross_validation[4]]
+    }
+
+    print(f'Training data confusion matrix: \n {cm_train}')
+    print(f'Test data confusion matrix: \n {cm_test}')
+
+    return pd.DataFrame(output)
 
 
 def draw_roc(model, X_test, actual):
