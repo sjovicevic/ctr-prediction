@@ -59,8 +59,8 @@ def store_results(name, X_train, y_train, X_test, y_test, model, folds):
     return pd.DataFrame(output)
 
 
-def draw_roc(model, X_test, actual):
-    probs = model.predict(X_test)
+def draw_roc(model, x, actual):
+    probs = model.predict(x)
     fpr, tpr, thresholds = metrics.roc_curve(actual, probs, drop_intermediate=False)
     auc_score = metrics.roc_auc_score(actual, probs)
     plt.figure(figsize=(6, 6))
