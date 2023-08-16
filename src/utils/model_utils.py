@@ -22,14 +22,11 @@ def precision_recall(confusion_matrix):
 
     return precision, recall
 
+def f1_score(precision, recall):
+    return (2 * precision * recall) / (precision + recall)
 
-def store_results(name, X_train, y_train, X_test, y_test, model, folds):
-    cross_validation = cross_val_score(
-        estimator=model,
-        X=X_train,
-        y=y_train,
-        cv=folds,
-        n_jobs=-1)
+
+def store_results(name, X_train, y_train, X_test, y_test, model):
 
     accuracy_train, cm_train = model_evaluation(model, X_train, y_train)
     accuracy_test, cm_test = model_evaluation(model, X_test, y_test)
@@ -37,20 +34,18 @@ def store_results(name, X_train, y_train, X_test, y_test, model, folds):
     precision_train, recall_train = precision_recall(cm_train)
     precision_test, recall_test = precision_recall(cm_test)
 
+    f1_train, f1_test = f1_score(precision_train, recall_train), f1_score(precision_test, recall_test)
+
     output = {
         'model-name': [name],
         'accuracy-train': [accuracy_train],
         'precision-train': [precision_train],
         'recall-train': [recall_train],
+        'f1-train': [f1_train],
         'accuracy_test': [accuracy_test],
         'precision-test': [precision_test],
         'recall-test': [recall_test],
-        'cross-val-mean': [cross_validation.mean()],
-        'cross-val-1': [cross_validation[0]],
-        'cross-val-2': [cross_validation[1]],
-        'cross-val-3': [cross_validation[2]],
-        'cross-val-4': [cross_validation[3]],
-        'cross-val-5': [cross_validation[4]]
+        'f1-test': [f1_test]
     }
 
     print(f'Training data confusion matrix: \n {cm_train}')
